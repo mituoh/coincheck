@@ -20,7 +20,7 @@ const (
 
 func main() {
 	api := coincheck.New(key, secret)
-	result, err := api.ReadBalance()
+	result, err := api.GetBalance()
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return

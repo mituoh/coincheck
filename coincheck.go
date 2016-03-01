@@ -23,6 +23,12 @@ type APIClient struct {
 	client *http.Client
 }
 
+// OrderBook represents account Coincheck order book
+type OrderBook struct {
+	Asks [][]string `json:"asks"`
+	Bids [][]string `json:"bids"`
+}
+
 // Balance represents account balance
 type Balance struct {
 	BTC          string `json:"btc"`
@@ -48,8 +54,23 @@ func New(key, secret string) (client *APIClient) {
 	return client
 }
 
-// ReadBalance returns account balance
-func (api APIClient) ReadBalance() (balance Balance, err error) {
+// GetOrderBook returns Coincheck order book
+func (api APIClient) GetOrderBook() (orderBook OrderBook, err error) {
+	endpoint := URL + "/api/order_books"
+	headers := headers(api.key, api.secret, endpoint, "")
+	resp, err := api.doRequest("GET", endpoint, headers)
+	if err != nil {
+		return orderBook, err
+	}
+	err = json.Unmarshal(resp, &orderBook)
+	if err != nil {
+		return orderBook, err
+	}
+	return orderBook, nil
+}
+
+// GetBalance returns account balance
+func (api APIClient) GetBalance() (balance Balance, err error) {
 	endpoint := URL + "/api/accounts/balance"
 	headers := headers(api.key, api.secret, endpoint, "")
 	resp, err := api.doRequest("GET", endpoint, headers)
@@ -63,7 +84,7 @@ func (api APIClient) ReadBalance() (balance Balance, err error) {
 	if !balance.Success {
 		return balance, errors.New(balance.Error)
 	}
-	return balance, err
+	return balance, nil
 }
 
 // doRequest executes a HTTP request to the Coincheck API and returns the result
