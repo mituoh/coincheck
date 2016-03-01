@@ -3,7 +3,9 @@ package coincheck
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -21,26 +23,52 @@ type APIClient struct {
 	client *http.Client
 }
 
+// Balance represents account balance
+type Balance struct {
+	BTC          string `json:"btc"`
+	BTCDebt      string `json:"btc_debt"`
+	BTCLendInUse string `json:"btc_lend_in_use"`
+	BTCLent      string `json:"btc_lent"`
+	BTCReserved  string `json:"btc_reserved"`
+	JPY          string `json:"jpy"`
+	JPYDebt      string `json:"jpy_debt"`
+	JPYLendInUse string `json:"jpy_lend_in_use"`
+	JPYLent      string `json:"jpy_lent"`
+	JPYReserved  string `json:"jpy_reserved"`
+	Success      bool   `json:"success"`
+	Error        string `json:"error"`
+}
+
 // New creates a new Kraken API struct
-func New(key, secret string) *APIClient {
-	krakenAPI := new(APIClient)
-	krakenAPI.key = key
-	krakenAPI.secret = secret
-	krakenAPI.client = new(http.Client)
-	return krakenAPI
+func New(key, secret string) (client *APIClient) {
+	client = new(APIClient)
+	client.key = key
+	client.secret = secret
+	client.client = new(http.Client)
+	return client
 }
 
 // ReadBalance returns account balance
-func (api APIClient) ReadBalance() (interface{}, error) {
+func (api APIClient) ReadBalance() (balance Balance, err error) {
 	endpoint := URL + "/api/accounts/balance"
 	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest(endpoint, headers)
-	return resp, err
+	resp, err := api.doRequest("GET", endpoint, headers)
+	if err != nil {
+		return balance, err
+	}
+	err = json.Unmarshal(resp, &balance)
+	if err != nil {
+		return balance, err
+	}
+	if !balance.Success {
+		return balance, errors.New(balance.Error)
+	}
+	return balance, err
 }
 
 // doRequest executes a HTTP request to the Coincheck API and returns the result
-func (api *APIClient) doRequest(endpoint string, headers map[string]string) (interface{}, error) {
-	req, err := http.NewRequest("POST", endpoint, nil)
+func (api *APIClient) doRequest(method, endpoint string, headers map[string]string) ([]byte, error) {
+	req, err := http.NewRequest(method, endpoint, nil)
 	if err != nil {
 		return nil, requestError(err.Error())
 	}
@@ -77,7 +105,7 @@ func computeHmac256(message string, secret string) string {
 	key := []byte(secret)
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(message))
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // requestError formats request error
