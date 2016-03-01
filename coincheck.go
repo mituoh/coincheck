@@ -30,9 +30,9 @@ func New(key, secret string) *APIClient {
 	return krakenAPI
 }
 
-// ReadBalance
+// ReadBalance returns account balance
 func (api APIClient) ReadBalance() (interface{}, error) {
-	endpoint := URL + "api/accounts/balance"
+	endpoint := URL + "/api/accounts/balance"
 	headers := headers(api.key, api.secret, endpoint, "")
 	resp, err := api.doRequest(endpoint, headers)
 	return resp, err
