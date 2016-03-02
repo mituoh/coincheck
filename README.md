@@ -29,3 +29,31 @@ func main() {
 	fmt.Printf("Result: %+v\n", result)
 }
 ```
+
+Todo:
+- [x] Ticker
+- [x] Public trades
+- [x] Order book
+- [ ] New order
+- [ ] Unsettled order list
+- [ ] Cancel order
+- [ ] Order transactions
+- [ ] Positions list
+- [x] Balance
+- [x] Leverage balance
+- [ ] Send BTC
+- [ ] BTC sends history
+- [ ] BTC deposits history
+- [ ] Fast bitcoin deposit
+- [x] Account information
+- [ ] Bank account list
+- [ ] Register bank account
+- [ ] Remove bank account
+- [ ] Withdraw history
+- [ ] Create withdraw
+- [ ] Cancel withdraw
+- [ ] Apply borrowing
+- [ ] Borrowing list
+- [ ] Reply
+- [ ] Transfers to leverage account
+- [ ] Transfers from leverage account
