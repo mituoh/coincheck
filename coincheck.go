@@ -23,6 +23,17 @@ type APIClient struct {
 	client *http.Client
 }
 
+// Ticker represents account Coincheck ticker
+type Ticker struct {
+	Ask       int    `json:"ask"`
+	Bid       int    `json:"bid"`
+	High      int    `json:"high"`
+	Last      int    `json:"last"`
+	Low       int    `json:"low"`
+	Timestamp int    `json:"timestamp"`
+	Volume    string `json:"volume"`
+}
+
 // OrderBook represents account Coincheck order book
 type OrderBook struct {
 	Asks [][]string `json:"asks"`
@@ -52,6 +63,21 @@ func New(key, secret string) (client *APIClient) {
 	client.secret = secret
 	client.client = new(http.Client)
 	return client
+}
+
+// GetTicker returns Coincheck ticker
+func (api APIClient) GetTicker() (ticker Ticker, err error) {
+	endpoint := URL + "/api/ticker"
+	headers := headers(api.key, api.secret, endpoint, "")
+	resp, err := api.doRequest("GET", endpoint, headers)
+	if err != nil {
+		return ticker, err
+	}
+	err = json.Unmarshal(resp, &ticker)
+	if err != nil {
+		return ticker, err
+	}
+	return ticker, nil
 }
 
 // GetOrderBook returns Coincheck order book
