@@ -103,12 +103,7 @@ func New(key, secret string) (client *APIClient) {
 // GetTicker returns Coincheck ticker
 func (api APIClient) GetTicker() (ticker Ticker, err error) {
 	endpoint := URL + "/api/ticker"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return ticker, err
-	}
-	err = json.Unmarshal(resp, &ticker)
+	err = api.doGetRequest(endpoint, &ticker)
 	if err != nil {
 		return ticker, err
 	}
@@ -118,12 +113,7 @@ func (api APIClient) GetTicker() (ticker Ticker, err error) {
 // GetTrades returns Coincheck trades
 func (api APIClient) GetTrades() (trades []Trade, err error) {
 	endpoint := URL + "/api/trades"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return trades, err
-	}
-	err = json.Unmarshal(resp, &trades)
+	err = api.doGetRequest(endpoint, &trades)
 	if err != nil {
 		return trades, err
 	}
@@ -133,12 +123,7 @@ func (api APIClient) GetTrades() (trades []Trade, err error) {
 // GetOrderBook returns Coincheck order book
 func (api APIClient) GetOrderBook() (orderBook OrderBook, err error) {
 	endpoint := URL + "/api/order_books"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return orderBook, err
-	}
-	err = json.Unmarshal(resp, &orderBook)
+	err = api.doGetRequest(endpoint, &orderBook)
 	if err != nil {
 		return orderBook, err
 	}
@@ -148,12 +133,7 @@ func (api APIClient) GetOrderBook() (orderBook OrderBook, err error) {
 // GetBalance returns account balance
 func (api APIClient) GetBalance() (balance Balance, err error) {
 	endpoint := URL + "/api/accounts/balance"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return balance, err
-	}
-	err = json.Unmarshal(resp, &balance)
+	err = api.doGetRequest(endpoint, &balance)
 	if err != nil {
 		return balance, err
 	}
@@ -166,12 +146,7 @@ func (api APIClient) GetBalance() (balance Balance, err error) {
 // GetLeverageBalance returns account leverage balance
 func (api APIClient) GetLeverageBalance() (leverageBalance LeverageBalance, err error) {
 	endpoint := URL + "/api/accounts/leverage_balance"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return leverageBalance, err
-	}
-	err = json.Unmarshal(resp, &leverageBalance)
+	err = api.doGetRequest(endpoint, &leverageBalance)
 	if err != nil {
 		return leverageBalance, err
 	}
@@ -184,12 +159,7 @@ func (api APIClient) GetLeverageBalance() (leverageBalance LeverageBalance, err 
 // GetAccounts returns accounts
 func (api APIClient) GetAccounts() (accounts Accounts, err error) {
 	endpoint := URL + "/api/accounts"
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
-	if err != nil {
-		return accounts, err
-	}
-	err = json.Unmarshal(resp, &accounts)
+	err = api.doGetRequest(endpoint, &accounts)
 	if err != nil {
 		return accounts, err
 	}
@@ -197,6 +167,19 @@ func (api APIClient) GetAccounts() (accounts Accounts, err error) {
 		return accounts, errors.New(accounts.Error)
 	}
 	return accounts, nil
+}
+
+func (api *APIClient) doGetRequest(endpoint string, data interface{}) (err error) {
+	headers := headers(api.key, api.secret, endpoint, "")
+	resp, err := api.doRequest("GET", endpoint, headers)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(resp, data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // doRequest executes a HTTP request to the Coincheck API and returns the result
