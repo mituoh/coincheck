@@ -78,6 +78,19 @@ type LeverageBalance struct {
 	Error       string `json:"error"`
 }
 
+// Accounts represents Coincheck accounts
+type Accounts struct {
+	BitcoinAddress  string `json:"bitcoin_address"`
+	Email           string `json:"email"`
+	ID              int    `json:"id"`
+	IdentityStatus  string `json:"identity_status"`
+	LendingLeverage string `json:"lending_leverage"`
+	MakerFee        string `json:"maker_fee"`
+	Success         bool   `json:"success"`
+	TakerFee        string `json:"taker_fee"`
+	Error           string `json:"error"`
+}
+
 // New creates a new Kraken API struct
 func New(key, secret string) (client *APIClient) {
 	client = new(APIClient)
@@ -166,6 +179,24 @@ func (api APIClient) GetLeverageBalance() (leverageBalance LeverageBalance, err 
 		return leverageBalance, errors.New(leverageBalance.Error)
 	}
 	return leverageBalance, nil
+}
+
+// GetAccounts returns accounts
+func (api APIClient) GetAccounts() (accounts Accounts, err error) {
+	endpoint := URL + "/api/accounts"
+	headers := headers(api.key, api.secret, endpoint, "")
+	resp, err := api.doRequest("GET", endpoint, headers)
+	if err != nil {
+		return accounts, err
+	}
+	err = json.Unmarshal(resp, &accounts)
+	if err != nil {
+		return accounts, err
+	}
+	if !accounts.Success {
+		return accounts, errors.New(accounts.Error)
+	}
+	return accounts, nil
 }
 
 // doRequest executes a HTTP request to the Coincheck API and returns the result
