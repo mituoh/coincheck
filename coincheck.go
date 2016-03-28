@@ -25,22 +25,22 @@ type APIClient struct {
 
 // Ticker represents Coincheck ticker
 type Ticker struct {
-	Ask       int    `json:"ask"`
-	Bid       int    `json:"bid"`
-	High      int    `json:"high"`
-	Last      int    `json:"last"`
-	Low       int    `json:"low"`
-	Timestamp int    `json:"timestamp"`
-	Volume    string `json:"volume"`
+	Ask       float64 `json:"ask"`
+	Bid       float64 `json:"bid"`
+	High      float64 `json:"high"`
+	Last      float64 `json:"last"`
+	Low       float64 `json:"low"`
+	Timestamp float64 `json:"timestamp"`
+	Volume    string  `json:"volume"`
 }
 
 // Trade represents Coincheck trade
 type Trade struct {
-	Amount    string `json:"amount"`
-	CreatedAt string `json:"created_at"`
-	ID        int    `json:"id"`
-	OrderType string `json:"order_type"`
-	Rate      int    `json:"rate"`
+	Amount    string  `json:"amount"`
+	CreatedAt string  `json:"created_at"`
+	ID        int     `json:"id"`
+	OrderType string  `json:"order_type"`
+	Rate      float64 `json:"rate"`
 }
 
 // OrderBook represents account Coincheck order book
