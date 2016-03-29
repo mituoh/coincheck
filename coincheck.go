@@ -1,6 +1,7 @@
 package coincheck
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -91,6 +92,16 @@ type Accounts struct {
 	Error           string `json:"error"`
 }
 
+// Order represents a new order.
+type Order struct {
+	Rate      float64 `json:"rate"`
+	Amount    float64 `json:"amount"`
+	OrderType string  `json:"order_type"`
+	Pair      string  `json:"pair"`
+	Success   bool    `json:"success"`
+	Error     string  `json:"error"`
+}
+
 // New creates a new Kraken API struct
 func New(key, secret string) (client *APIClient) {
 	client = new(APIClient)
@@ -102,8 +113,7 @@ func New(key, secret string) (client *APIClient) {
 
 // GetTicker returns Coincheck ticker
 func (api APIClient) GetTicker() (ticker Ticker, err error) {
-	endpoint := URL + "/api/ticker"
-	err = api.doGetRequest(endpoint, &ticker)
+	err = api.doGetRequest("/api/ticker", []byte(""), &ticker)
 	if err != nil {
 		return ticker, err
 	}
@@ -112,8 +122,7 @@ func (api APIClient) GetTicker() (ticker Ticker, err error) {
 
 // GetTrades returns Coincheck trades
 func (api APIClient) GetTrades() (trades []Trade, err error) {
-	endpoint := URL + "/api/trades"
-	err = api.doGetRequest(endpoint, &trades)
+	err = api.doGetRequest("/api/trades", []byte(""), &trades)
 	if err != nil {
 		return trades, err
 	}
@@ -122,8 +131,7 @@ func (api APIClient) GetTrades() (trades []Trade, err error) {
 
 // GetOrderBook returns Coincheck order book
 func (api APIClient) GetOrderBook() (orderBook OrderBook, err error) {
-	endpoint := URL + "/api/order_books"
-	err = api.doGetRequest(endpoint, &orderBook)
+	err = api.doGetRequest("/api/order_books", []byte(""), &orderBook)
 	if err != nil {
 		return orderBook, err
 	}
@@ -132,8 +140,7 @@ func (api APIClient) GetOrderBook() (orderBook OrderBook, err error) {
 
 // GetBalance returns account balance
 func (api APIClient) GetBalance() (balance Balance, err error) {
-	endpoint := URL + "/api/accounts/balance"
-	err = api.doGetRequest(endpoint, &balance)
+	err = api.doGetRequest("/api/accounts/balance", []byte(""), &balance)
 	if err != nil {
 		return balance, err
 	}
@@ -145,8 +152,7 @@ func (api APIClient) GetBalance() (balance Balance, err error) {
 
 // GetLeverageBalance returns account leverage balance
 func (api APIClient) GetLeverageBalance() (leverageBalance LeverageBalance, err error) {
-	endpoint := URL + "/api/accounts/leverage_balance"
-	err = api.doGetRequest(endpoint, &leverageBalance)
+	err = api.doGetRequest("/api/accounts/leverage_balance", []byte(""), &leverageBalance)
 	if err != nil {
 		return leverageBalance, err
 	}
@@ -158,8 +164,7 @@ func (api APIClient) GetLeverageBalance() (leverageBalance LeverageBalance, err 
 
 // GetAccounts returns accounts
 func (api APIClient) GetAccounts() (accounts Accounts, err error) {
-	endpoint := URL + "/api/accounts"
-	err = api.doGetRequest(endpoint, &accounts)
+	err = api.doGetRequest("/api/accounts", []byte(""), &accounts)
 	if err != nil {
 		return accounts, err
 	}
@@ -169,9 +174,26 @@ func (api APIClient) GetAccounts() (accounts Accounts, err error) {
 	return accounts, nil
 }
 
-func (api *APIClient) doGetRequest(endpoint string, data interface{}) (err error) {
-	headers := headers(api.key, api.secret, endpoint, "")
-	resp, err := api.doRequest("GET", endpoint, headers)
+// NewOrder sends a new order.
+func (api APIClient) NewOrder(order Order) (newOrder Order, err error) {
+	newOrder = order
+	data, err := json.Marshal(newOrder)
+	if err != nil {
+		return newOrder, err
+	}
+	err = api.doPostRequest("/api/exchange/orders", data, &newOrder)
+	if err != nil {
+		return newOrder, err
+	}
+	if newOrder.Error != "" {
+		return newOrder, errors.New(newOrder.Error)
+	}
+	return newOrder, nil
+}
+
+func (api *APIClient) doGetRequest(endpoint string, body []byte, data interface{}) (err error) {
+	headers := headers(api.key, api.secret, URL+endpoint, string(body))
+	resp, err := api.doRequest("GET", URL+endpoint, body, headers)
 	if err != nil {
 		return err
 	}
@@ -182,9 +204,21 @@ func (api *APIClient) doGetRequest(endpoint string, data interface{}) (err error
 	return nil
 }
 
-// doRequest executes a HTTP request to the Coincheck API and returns the result
-func (api *APIClient) doRequest(method, endpoint string, headers map[string]string) ([]byte, error) {
-	req, err := http.NewRequest(method, endpoint, nil)
+func (api *APIClient) doPostRequest(endpoint string, body []byte, data interface{}) (err error) {
+	headers := headers(api.key, api.secret, URL+endpoint, string(body))
+	resp, err := api.doRequest("POST", URL+endpoint, body, headers)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(resp, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *APIClient) doRequest(method, endpoint string, data []byte, headers map[string]string) ([]byte, error) {
+	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, requestError(err.Error())
 	}
