@@ -94,6 +94,7 @@ type Accounts struct {
 
 // Order represents a new order.
 type Order struct {
+	ID        int     `json:"id"`
 	Rate      float64 `json:"rate"`
 	Amount    float64 `json:"amount"`
 	OrderType string  `json:"order_type"`
