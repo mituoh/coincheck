@@ -238,7 +238,7 @@ func (api *APIClient) doRequest(method, endpoint string, data []byte, headers ma
 
 // headers
 func headers(key, secret, uri, body string) map[string]string {
-	currentTime := time.Now().Unix()
+	currentTime := time.Now().UTC().Unix()
 	nonce := strconv.Itoa(int(currentTime))
 	message := nonce + uri + body
 	signature := computeHmac256(message, secret)
