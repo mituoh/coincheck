@@ -35,7 +35,7 @@ Todo:
 - [x] Public trades
 - [x] Order book
 - [x] New order
-- [ ] Unsettled order list
+- [x] Unsettled order list
 - [ ] Cancel order
 - [ ] Order transactions
 - [ ] Positions list

@@ -94,13 +94,24 @@ type Accounts struct {
 
 // Order represents a new order.
 type Order struct {
-	ID        int    `json:"id"`
-	Rate      string `json:"rate"`
-	Amount    string `json:"amount"`
-	OrderType string `json:"order_type"`
-	Pair      string `json:"pair"`
-	Success   bool   `json:"success"`
-	Error     string `json:"error"`
+	ID                     int    `json:"id"`
+	Rate                   string `json:"rate"`
+	Amount                 string `json:"amount"`
+	OrderType              string `json:"order_type"`
+	Pair                   string `json:"pair"`
+	PendingAmount          string `json:"pending_amount"`
+	PendingMarketBuyAmount string `json:"pending_marker_buy_amount"`
+	StopLossRate           string `json:"stop_loss_rate"`
+	CreatedAt              string `json:"created_at"`
+	Success                bool   `json:"success"`
+	Error                  string `json:"error"`
+}
+
+// OpenOrders represents list of open orders.
+type OpenOrders struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error"`
+	Orders  []Order
 }
 
 // New creates a new Kraken API struct
@@ -173,6 +184,18 @@ func (api APIClient) GetAccounts() (accounts Accounts, err error) {
 		return accounts, errors.New(accounts.Error)
 	}
 	return accounts, nil
+}
+
+// GetOpenOrders returns all open orders.
+func (api APIClient) GetOpenOrders() (orders OpenOrders, err error) {
+	err = api.doGetRequest("/api/exchange/orders/opens", []byte(""), &orders)
+	if err != nil {
+		return orders, err
+	}
+	if !orders.Success {
+		return orders, errors.New(orders.Error)
+	}
+	return orders, nil
 }
 
 // NewOrder sends a new order.
