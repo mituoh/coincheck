@@ -32,7 +32,7 @@ type Ticker struct {
 	Last      float64 `json:"last"`
 	Low       float64 `json:"low"`
 	Timestamp float64 `json:"timestamp"`
-	Volume    string  `json:"volume"`
+	Volume    float64 `json:"volume"`
 }
 
 // Trade represents Coincheck trade
